@@ -1,6 +1,6 @@
 # poem-music
 
-*For a demo see `poem-music-demo.mov`
+*For a demo see `demo`
 
 ###### **Environment Setup**
 
