@@ -1,5 +1,7 @@
 # poem-music
 
+Completed for CMPM202 with Hongwei (Henry) Zhou and Kapil Gupta
+
 *For a demo see `demo`
 
 ###### **Environment Setup**
