@@ -1,0 +1,5 @@
+python .\run_generation.py ##Prompt##
+
+python .\processOutput.py
+
+The output will be in genOutput.txt

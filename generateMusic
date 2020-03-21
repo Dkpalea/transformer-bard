@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+source venv-poem-music/bin/activate \
+&&
+cd LanguageModels \
+&&
+python run_generation.py "$*" \
+&&
+python processOutput.py \
+&&
+cd .. \
+&&
+deactivate
