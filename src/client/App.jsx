@@ -68,7 +68,7 @@ export default class App extends Component {
             // loadingIconElement.classList.remove('fadeIn');
             // loadingIconElement.classList.add('fadeOut');
             // poemTextElement.classList.add('fadeIn');
-            poemTextElement.classList.remove('fadeOut');
+            // poemTextElement.classList.remove('fadeOut');
             poemTextElement.classList.remove('hidden-initial');
           }, 3000);
         } else {
@@ -85,88 +85,104 @@ export default class App extends Component {
   }
 
   enterButtonClicked = () => {
-    fetch('/api/getPoem', {
-      method: 'POST',
-      body: JSON.stringify({ poemPrompt: this.state.poemPrompt }),
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    })
-      .then(res => res.json())
-      .then(responseObj => {
-        let sentiment = new Sentiment();
-        let sentimentResult = sentiment.analyze(responseObj.poem);
-        let activeAudioElement = null;
-        let activeTargetVolume = null;
-        const musicAudioPlayerElement = document.getElementById('musicAudioPlayer');
-        const poemTextElement = document.getElementById('poem');
-        const poemAudioPlayerElement = document.getElementById('poemAudioPlayer');
-        const happyAudioPlayerElement = document.getElementById('happyAudioPlayer');
-        const sadAudioPlayerElement = document.getElementById('sadAudioPlayer');
-        const bodyElement = document.body;
-        const loadingIconElement = document.getElementById('loadingIcon');
-        // hide loading icon when results come back
-        loadingIconElement.classList.remove('fadeIn');
-        loadingIconElement.classList.add('fadeOut');
-        // stop restart interval functions
-        window.clearInterval(this.volumeFadeOut);
-        // pause all
-        musicAudioPlayerElement.pause();
-        poemAudioPlayerElement.pause();
-        happyAudioPlayerElement.pause();
-        sadAudioPlayerElement.pause();
-        // reload
-        musicAudioPlayerElement.load();
-        poemAudioPlayerElement.load();
-        // set all to beginning
-        // musicAudioPlayerElement.currentTime = 0;
-        poemAudioPlayerElement.currentTime = 0;
-        happyAudioPlayerElement.currentTime = 0;
-        sadAudioPlayerElement.currentTime = 0;
-        // set volume
-        musicAudioPlayerElement.volume = 0.4;
-        poemAudioPlayerElement.volume = 1;
-        happyAudioPlayerElement.volume = 0;
-        sadAudioPlayerElement.volume = 0;
-
-        if (sentimentResult.score >= 0) {
-          // happy
-          activeAudioElement = happyAudioPlayerElement;
-          activeTargetVolume = 0.3;
-          // change bg color
-          bodyElement.style.backgroundColor = '#ffea6c';
-          // change text color
-          poemTextElement.style.color = '#1a1a1a';
-        } else {
-          // sad
-          activeAudioElement = sadAudioPlayerElement;
-          activeTargetVolume = 0.2;
-          // change bg color
-          bodyElement.style.backgroundColor = '#2c345c';
-          // change text color
-          poemTextElement.style.color = '#eeeeee';
+    try {
+      fetch('/api/getPoem', {
+        method: 'POST',
+        body: JSON.stringify({ poemPrompt: this.state.poemPrompt }),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'mode': 'no-cors'
         }
+      })
+        .then(res => res.json())
+        .then(responseObj => {
+          console.log(responseObj);
+          let sentiment = new Sentiment();
+          let sentimentResult = sentiment.analyze(responseObj.poem);
+          let activeAudioElement = null;
+          let activeTargetVolume = null;
+          const musicAudioPlayerElement = document.getElementById('musicAudioPlayer');
+          const poemTextElement = document.getElementById('poem');
+          const poemAudioPlayerElement = document.getElementById('poemAudioPlayer');
+          const happyAudioPlayerElement = document.getElementById('happyAudioPlayer');
+          const sadAudioPlayerElement = document.getElementById('sadAudioPlayer');
+          const bodyElement = document.body;
+          const loadingIconElement = document.getElementById('loadingIcon');
+          poemTextElement.classList.add('fadeIn');
+          poemTextElement.classList.remove('fadeOut');
+          poemTextElement.classList.remove('hidden-initial');
+          // hide loading icon when results come back
+          loadingIconElement.classList.remove('fadeIn');
+          loadingIconElement.classList.add('fadeOut');
+          // stop restart interval functions
+          window.clearInterval(this.volumeFadeOut);
+          // pause all
+          musicAudioPlayerElement.pause();
+          poemAudioPlayerElement.pause();
+          happyAudioPlayerElement.pause();
+          sadAudioPlayerElement.pause();
+          // reload
+          musicAudioPlayerElement.load();
+          poemAudioPlayerElement.load();
+          // set all to beginning
+          // musicAudioPlayerElement.currentTime = 0;
+          poemAudioPlayerElement.currentTime = 0;
+          happyAudioPlayerElement.currentTime = 0;
+          sadAudioPlayerElement.currentTime = 0;
+          // set volume
+          musicAudioPlayerElement.volume = 0.4;
+          poemAudioPlayerElement.volume = 1;
+          happyAudioPlayerElement.volume = 0;
+          sadAudioPlayerElement.volume = 0;
 
-        poemAudioPlayerElement.setAttribute('src', responseObj.apiResponseUrl);
-        setTimeout(() => musicAudioPlayerElement.play(), 3750);
-        setTimeout(() => poemAudioPlayerElement.play(), 5000);
-        activeAudioElement.play();
-
-        const transitionLengthMilSec = 5000;
-        const intervalMilSec = 100;
-        const incrementPercentAmount = activeTargetVolume/(transitionLengthMilSec/intervalMilSec);
-
-        this.volumeFadeIn = window.setInterval(() => {
-          if (activeAudioElement.volume < activeTargetVolume) {
-            activeAudioElement.volume = Math.round(100*(activeAudioElement.volume+incrementPercentAmount))/100;
+          if (sentimentResult.score >= 0) {
+            // happy
+            activeAudioElement = happyAudioPlayerElement;
+            activeTargetVolume = 0.3;
+            // change bg color
+            bodyElement.style.backgroundColor = '#ffea6c';
+            // change text color
+            poemTextElement.style.color = '#1a1a1a';
           } else {
-            window.clearInterval(this.volumeFadeIn);
+            console.log('sad');
+            // sad
+            activeAudioElement = sadAudioPlayerElement;
+            activeTargetVolume = 0.3;
+            // change bg color
+            bodyElement.style.backgroundColor = '#2c345c';
+            // change text color
+            poemTextElement.style.color = '#eeeeee';
           }
-        }, intervalMilSec);
 
-        this.setState({...responseObj, sentimentResultScore: sentimentResult.score}, () => console.log(this.state));
-      });
+          poemAudioPlayerElement.setAttribute('src', responseObj.apiResponseUrl);
+          setTimeout(() => musicAudioPlayerElement.play(), 3750);
+          setTimeout(() => poemAudioPlayerElement.play(), 5000);
+          activeAudioElement.play();
+
+          const transitionLengthMilSec = 5000;
+          const intervalMilSec = 100;
+          const incrementPercentAmount = activeTargetVolume/(transitionLengthMilSec/intervalMilSec);
+
+          console.log(activeTargetVolume);
+
+          this.volumeFadeIn = window.setInterval(() => {
+            if (activeAudioElement.volume < activeTargetVolume) {
+              const setTo = Math.round(100*(activeAudioElement.volume+incrementPercentAmount))/100;
+              console.log(setTo);
+              activeAudioElement.volume = setTo;
+            } else {
+              window.clearInterval(this.volumeFadeIn);
+            }
+          }, intervalMilSec);
+
+          this.setState({...responseObj, sentimentResultScore: sentimentResult.score}, () => console.log(this.state));
+        });
+    } catch(e) {
+      console.log('Error:', e.stack);
+      console.log(e);
+    }
   };
 
 

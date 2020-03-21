@@ -15,48 +15,44 @@ app.use(express.static('dist'));
 app.use(serveStatic('public', {acceptRanges: false}));
 app.use(bodyParser.json());
 app.use(nocache());
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "localhost"); // update to match the domain you will make the request from
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 app.post('/api/getPoem', (req, res) => {
   console.log(req.body.poemPrompt);
-  // execSync('./generateText hello yellow', (error, stdout, stderr) => {
-  //   if (error) {
-  //     console.log(`error: ${error.message}`);
-  //     return;
-  //   }
-  //   if (stderr) {
-  //     console.log(`stderr: ${stderr}`);
-  //     return;
-  //   }
-  //   console.log(`stdout: ${stdout}`);
-  // });
+  // res.send({ poem: 'sad', apiResponseUrl: 'abc123', });
+
   const child = require('child_process').exec(`./generateText ${req.body.poemPrompt}`);
   child.stdout.pipe(process.stdout);
   child.on('exit', function() {
     try {
-      //read poem file
+      // //read poem file
       poem = fs.readFileSync('LanguageModels/genOutput.txt', 'utf8');
       // trim poem to 550 char (max length for api)
       poem = poem.substr(0, 550);
 
       // tried to replace \n with . but reads as "dot"
-      const poemPauses = poem.replace(/=/g, ' ');
+      // const poemPauses = poem.replace(/=/g, ' ');
+      console.log(poem);
 
       // disabled for now
       // post to voice api
       axios.post('https://streamlabs.com/polly/speak', {
         voice: 'Justin',
-        text: poemPauses,
+        text: poem,
       })
         .then((apiResponse) => {
           // console.log(apiResponse.data.speak_url);
           // send data to frontend
           res.send({ poem, apiResponseUrl: apiResponse.data.speak_url, });
+          console.log('api responded');
         })
         .catch((error) => {
           console.error(error);
         });
-
-      // res.send({ poem, apiResponseUrl: 'abc123', });
 
     } catch(e) {
       console.log('Error:', e.stack);
@@ -64,4 +60,5 @@ app.post('/api/getPoem', (req, res) => {
   });
 });
 
-app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));
+const server = app.listen(process.env.PORT || 8080, () => console.log(`Listening on port ${process.env.PORT || 8080}!`));
+server.timeout = 99999999999;
