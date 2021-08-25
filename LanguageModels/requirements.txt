@@ -1,2 +1,2 @@
 gpt-2-simple
-tensorflow-gpu==1.14
+tensorflow-gpu==2.5.1
